@@ -7,6 +7,7 @@ import test_char
 import test_enums
 import test_errors
 import test_fast_numbers
+import test_includeHook
 import test_json_in_json
 import test_numbers
 import test_objects

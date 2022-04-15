@@ -769,11 +769,17 @@ proc dumpHook*(s: var string, v: object) =
   else:
     # Normal objects.
     for k, e in v.fieldPairs:
-      if i > 0:
-        s.add ','
-      s.dumpKey(k)
-      s.dumpHook(e)
-      inc i
+      let shouldInclude =
+        when compiles(includeHook(e)):
+          includeHook(e)
+        else:
+          true
+      if shouldInclude:
+        if i > 0:
+          s.add ','
+        s.dumpKey(k)
+        s.dumpHook(e)
+        inc i
   s.add '}'
 
 proc dumpHook*[N, T](s: var string, v: array[N, t[T]]) =
