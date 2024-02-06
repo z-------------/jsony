@@ -819,21 +819,27 @@ proc dumpHook*(s: var string, v: object) =
   else:
     # Normal objects.
     for k, e in v.fieldPairs:
-      when compiles(skipHook(type(v), k)):
-        when skipHook(type(v), k):
-          discard
+      const SkipKey =
+        when compiles(skipHook(type(v), k)):
+          skipHook(type(v), k)
         else:
+          false
+
+      template dump() =
+        when not SkipKey:
           if i > 0:
             s.add ','
           s.dumpKey(k)
           s.dumpHook(e)
           inc i
+
+      when compiles(skipHook(type(v), k, e)):
+        if skipHook(type(v), k, e):
+          discard
+        else:
+          dump()
       else:
-        if i > 0:
-          s.add ','
-        s.dumpKey(k)
-        s.dumpHook(e)
-        inc i
+        dump()
   s.add '}'
 
 proc dumpHook*[N, T](s: var string, v: array[N, t[T]]) =
