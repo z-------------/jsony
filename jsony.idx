@@ -5,7 +5,7 @@ nim	RawJson	jsony.html#RawJson	type RawJson		16
 nim	parseHook	jsony.html#parseHook,string,int,seq[T]	proc parseHook[T](s: string; i: var int; v: var seq[T])		18
 nim	parseHook	jsony.html#parseHook,string,int,T	proc parseHook[T: enum](s: string; i: var int; v: var T)		19
 nim	parseHook	jsony.html#parseHook,string,int,T_2	proc parseHook[T: object | ref object](s: string; i: var int; v: var T)		20
-nim	parseHook	jsony.html#parseHook,string,int,SomeTable[string,T]	proc parseHook[T](s: string; i: var int; v: var SomeTable[string, T])		21
+nim	parseHook	jsony.html#parseHook,string,int,SomeTable[K,V]	proc parseHook[K, V](s: string; i: var int; v: var SomeTable[K, V])		21
 nim	parseHook	jsony.html#parseHook,string,int,	proc parseHook[T](s: string; i: var int; v: var (SomeSet[T] | set[T]))		22
 nim	parseHook	jsony.html#parseHook,string,int,T_3	proc parseHook[T: tuple](s: string; i: var int; v: var T)		23
 nim	parseHook	jsony.html#parseHook,string,int,T_4	proc parseHook[T: array](s: string; i: var int; v: var T)		24
@@ -46,6 +46,6 @@ nim	parseHook	jsony.html#parseHook,string,int,RawJson	proc parseHook(s: string; 
 nim	dumpHook	jsony.html#dumpHook,string,RawJson	proc dumpHook(s: var string; v: RawJson)		915
 nim	toJson	jsony.html#toJson,T	proc toJson[T](v: T): string		918
 nim	toStaticJson	jsony.html#toStaticJson.t,untyped	template toStaticJson(v: untyped): static[string]		921
-nimgrp	fromjson	jsony.html#fromJson-procs-all	proc		596
 nimgrp	dumphook	jsony.html#dumpHook-procs-all	proc		615
 nimgrp	parsehook	jsony.html#parseHook-procs-all	proc		18
+nimgrp	fromjson	jsony.html#fromJson-procs-all	proc		596
