@@ -1,4 +1,5 @@
 import json, jsony, strutils, tables, times
+from algorithm import sortedByIt
 
 type Fraction = object
   numerator: int
@@ -45,7 +46,7 @@ proc parseHook(s: string, i: var int, v: var seq[Entry]) =
 
 let s = data.fromJson(seq[Entry])
 doAssert type(s) is seq[Entry]
-doAssert $s == """@[(id: "1", count: 12, filled: 11), (id: "2", count: 66, filled: 0), (id: "3", count: 99, filled: 99)]"""
+doAssert $s.sortedByIt(it.id) == """@[(id: "1", count: 12, filled: 11), (id: "2", count: 66, filled: 0), (id: "3", count: 99, filled: 99)]"""
 
 type Entry2 = object
   id: int
