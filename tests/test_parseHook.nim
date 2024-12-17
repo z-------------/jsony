@@ -111,3 +111,21 @@ doAssert headers[2].key == "Set-Cookie"
 doAssert headers[2].value == "name=valued"
 doAssert headers[3].key == "Set-Cookie"
 doAssert headers[3].value == "name=value; name2=value2; name3=value3d"
+
+# parse to Table with non-string keys
+type IntKey = object
+  n: int
+proc parseHook(s: string, i: var int, v: var IntKey) =
+  var str: string
+  parseHook(s, i, str)
+  v = IntKey(n: str.parseInt)
+
+let data4 = """{
+"1": "one",
+"2": "two",
+}"""
+
+let table = data4.fromJson(Table[IntKey, string])
+doAssert table.len == 2
+doAssert table[IntKey(n: 1)] == "one"
+doAssert table[IntKey(n: 2)] == "two"
