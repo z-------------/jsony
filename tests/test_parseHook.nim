@@ -1,4 +1,4 @@
-import json, jsony, strutils, tables, times
+import json, jsony, strutils, tables, times, hashes
 from algorithm import sortedByIt
 
 type Fraction = object
@@ -115,6 +115,10 @@ doAssert headers[3].value == "name=value; name2=value2; name3=value3d"
 # parse to Table with non-string keys
 type IntKey = object
   n: int
+
+proc hash(k: IntKey): Hash =
+  hash(k.n)
+
 proc parseHook(s: string, i: var int, v: var IntKey) =
   var str: string
   parseHook(s, i, str)
