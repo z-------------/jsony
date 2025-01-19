@@ -120,12 +120,12 @@ proc parseHook*(s: string, i: var int, v: var SomeSignedInt) =
     if i < s.len and s[i] == '+':
       inc i
     if i < s.len and s[i] == '-':
-      var v2: uint64
+      var v2 = uint64(0)
       inc i
       parseHook(s, i, v2)
       v = -type(v)(v2)
     else:
-      var v2: uint64
+      var v2 = uint64(0)
       parseHook(s, i, v2)
       try:
         v = type(v)(v2)
@@ -134,7 +134,7 @@ proc parseHook*(s: string, i: var int, v: var SomeSignedInt) =
 
 proc parseHook*(s: string, i: var int, v: var SomeFloat) =
   ## Will parse float32 and float64.
-  var f: float
+  var f = 0.0 # TODO change back once parseFloat is updated to take an out parameter
   eatSpace(s, i)
   let chars = parseutils.parseFloat(s, f, i)
   if chars == 0:
@@ -147,6 +147,7 @@ proc validRuneAt(s: string, i: int): Option[Rune] =
 
   template ones(n: untyped): untyped = ((1 shl n)-1)
 
+  result = none(Rune)
   if uint(s[i]) <= 127:
     result = some(Rune(uint(s[i])))
   elif uint(s[i]) shr 5 == 0b110:
@@ -275,7 +276,7 @@ proc parseHook*(s: string, i: var int, v: var string) =
   eatChar(s, i, '"')
 
 proc parseHook*(s: string, i: var int, v: var char) =
-  var str: string
+  var str = ""
   s.parseHook(i, str)
   if str.len != 1:
     error("String can't fit into a char.", i)
@@ -288,7 +289,7 @@ proc parseHook*[T](s: string, i: var int, v: var seq[T]) =
     eatSpace(s, i)
     if i < s.len and s[i] == ']':
       break
-    var element: T
+    var element = default(T)
     parseHook(s, i, element)
     v.add(element)
     eatSpace(s, i)
@@ -349,12 +350,13 @@ proc skipValue*(s: string, i: var int) =
         inc i
     eatChar(s, i, ']')
   elif i < s.len and s[i] == '"':
-    var str: string
+    var str = ""
     parseHook(s, i, str)
   else:
     discard parseSymbol(s, i)
 
 proc snakeCaseDynamic(s: string): string =
+  result = ""
   if s.len == 0:
     return
   var prevCap = false
@@ -377,7 +379,7 @@ proc parseObjectInner[T](s: string, i: var int, v: var T) =
     eatSpace(s, i)
     if i < s.len and s[i] == '}':
       break
-    var key: string
+    var key = ""
     parseHook(s, i, key)
     eatChar(s, i, ':')
     when compiles(renameHook(v, key)):
@@ -385,7 +387,8 @@ proc parseObjectInner[T](s: string, i: var int, v: var T) =
     block all:
       for k, v in v.fieldPairs:
         if k == key or snakeCase(k) == key:
-          var v2: type(v)
+          type T = typeof(v)
+          var v2 = default(T)
           parseHook(s, i, v2)
           v = v2
           break all
@@ -417,7 +420,7 @@ proc parseHook*[T: tuple](s: string, i: var int, v: var T) =
 
 proc parseHook*[T: enum](s: string, i: var int, v: var T) =
   eatSpace(s, i)
-  var strV: string
+  var strV = ""
   if i < s.len and s[i] == '"':
     parseHook(s, i, strV)
     when compiles(enumHook(strV, v)):
@@ -455,13 +458,14 @@ proc parseHook*[T: object|ref object](s: string, i: var int, v: var T) =
     eatSpace(s, i)
     var saveI = i
     while i < s.len:
-      var key: string
+      var key = ""
       parseHook(s, i, key)
       eatChar(s, i, ':')
       when compiles(renameHook(v, key)):
         renameHook(v, key)
       if key == v.discriminatorFieldName:
-        var discriminator: type(v.discriminatorField)
+        type D = typeof(v.discriminatorField)
+        var discriminator = default(D)
         parseHook(s, i, discriminator)
         new(v, discriminator)
         when compiles(newHook(v)):
@@ -490,7 +494,7 @@ proc parseHook*[T](s: string, i: var int, v: var Option[T]) =
       s[i+3] == 'l':
     i += 4
     return
-  var e: T
+  var e = default(T)
   parseHook(s, i, e)
   v = some(e)
 
@@ -503,10 +507,10 @@ proc parseHook*[K, V](s: string, i: var int, v: var SomeTable[K, V]) =
     eatSpace(s, i)
     if i < s.len and s[i] == '}':
       break
-    var key: K
+    var key = default(K)
     parseHook(s, i, key)
     eatChar(s, i, ':')
-    var element: V
+    var element = default(V)
     parseHook(s, i, element)
     v[key] = element
     if i < s.len and s[i] == ',':
@@ -523,7 +527,7 @@ proc parseHook*[T](s: string, i: var int, v: var (SomeSet[T]|set[T])) =
     eatSpace(s, i)
     if i < s.len and s[i] == ']':
       break
-    var e: T
+    var e = default(T)
     parseHook(s, i, e)
     v.incl(e)
     eatSpace(s, i)
@@ -541,10 +545,10 @@ proc parseHook*(s: string, i: var int, v: var JsonNode) =
       eatSpace(s, i)
       if i < s.len and s[i] == '}':
         break
-      var k: string
+      var k = ""
       parseHook(s, i, k)
       eatChar(s, i, ':')
-      var e: JsonNode
+      var e = JsonNode(nil)
       parseHook(s, i, e)
       v[k] = e
       eatSpace(s, i)
@@ -558,7 +562,7 @@ proc parseHook*(s: string, i: var int, v: var JsonNode) =
       eatSpace(s, i)
       if i < s.len and s[i] == ']':
         break
-      var e: JsonNode
+      var e = JsonNode(nil)
       parseHook(s, i, e)
       v.add(e)
       eatSpace(s, i)
@@ -566,7 +570,7 @@ proc parseHook*(s: string, i: var int, v: var JsonNode) =
         inc i
     eatChar(s, i, ']')
   elif i < s.len and s[i] == '"':
-    var str: string
+    var str = ""
     parseHook(s, i, str)
     v = newJString(str)
   else:
@@ -589,7 +593,7 @@ proc parseHook*(s: string, i: var int, v: var JsonNode) =
       error("Unexpected.", i)
 
 proc parseHook*[T: distinct](s: string, i: var int, v: var T) =
-  var x: T.distinctBase
+  var x = default(T.distinctBase)
   parseHook(s, i, x)
   v = cast[T](x)
 
@@ -607,6 +611,7 @@ proc fromJson*[T](s: string, x: typedesc[T]): T =
 
 proc fromJson*(s: string): JsonNode =
   ## Takes json parses it into `JsonNode`s.
+  result = JsonNode(nil)
   var i = 0
   s.parseHook(i, result)
   eatSpace(s, i)
@@ -658,7 +663,7 @@ proc dumpNumberFast(s: var string, v: uint|uint8|uint16|uint32|uint64) =
     s.add '0'
     return
   # Max size of a uin64 number is 20 digits.
-  var digits: array[20, char]
+  var digits = default(array[20, char])
   var v = v
   var p = 0
   while v != 0:
@@ -717,7 +722,7 @@ proc dumpHook*(s: var string, v: string) =
           copyMem(s[sLen].addr, v[copyStart].unsafeAddr, numBytes)
       copyStart = i
 
-  var i, copyStart: int
+  var i, copyStart = 0
   while i < v.len:
     let c = v[i]
     if (cast[uint8](c) and 0b10000000) == 0:
@@ -917,6 +922,7 @@ proc dumpHook*(s: var string, v: RawJson) =
   s.add v.string
 
 proc toJson*[T](v: T): string =
+  result = ""
   dumpHook(result, v)
 
 template toStaticJson*(v: untyped): static[string] =

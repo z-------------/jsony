@@ -120,6 +120,7 @@ block:
   doAssert v.colorBlend == "red"
 
 proc snakeCase(s: string): string =
+  result = ""
   var prevCap = false
   for i, c in s:
     if c in {'A'..'Z'}:

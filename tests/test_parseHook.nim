@@ -7,7 +7,7 @@ type Fraction = object
 
 proc parseHook(s: string, i: var int, v: var Fraction) =
   ## Instead of looking for fraction object look for a string.
-  var str: string
+  var str = ""
   parseHook(s, i, str)
   let arr = str.split("/")
   v = Fraction()
@@ -19,7 +19,7 @@ doAssert frac.numerator == 1
 doAssert frac.denominator == 3
 
 proc parseHook(s: string, i: var int, v: var DateTime) =
-  var str: string
+  var str = ""
   parseHook(s, i, str)
   v = parse(str, "yyyy-MM-dd hh:mm:ss")
 
@@ -38,7 +38,7 @@ let data = """{
 }"""
 
 proc parseHook(s: string, i: var int, v: var seq[Entry]) =
-  var table: Table[string, Entry]
+  var table = initTable[string, Entry]()
   parseHook(s, i, table)
   for k, entry in table.mpairs:
     entry.id = k
@@ -60,7 +60,7 @@ let data2 = """{
 }"""
 
 proc parseHook(s: string, i: var int, v: var Entry2) =
-  var entry: JsonNode
+  var entry = JsonNode(nil)
   parseHook(s, i, entry)
   v = Entry2()
   v.id = entry["id"].getInt()
@@ -83,7 +83,7 @@ proc parseHook(s: string, i: var int, v: var seq[Header]) =
     eatSpace(s, i)
     if i < s.len and s[i] == '}':
       break
-    var key, value: string
+    var key, value = ""
     parseHook(s, i, key)
     eatChar(s, i, ':')
     parseHook(s, i, value)
@@ -120,7 +120,7 @@ proc hash(k: IntKey): Hash =
   hash(k.n)
 
 proc parseHook(s: string, i: var int, v: var IntKey) =
-  var str: string
+  var str = ""
   parseHook(s, i, str)
   v = IntKey(n: str.parseInt)
 
